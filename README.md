@@ -6,11 +6,11 @@
 
 该方案作为搭配小橙子后台管理系统的后台代码模板。
 
-后台node项目地址：https://gitee.com/chen359479/orange-node
+后台node项目地址：https://github.com/chen359479/orange-node
 
-前端vue项目地址：  https://gitee.com/chen359479/orange-vue
+前端vue项目地址：  https://github.com/chen359479/orange-vue
 
-小程序项目地址：    https://gitee.com/chen359479/orange-uniapp
+小程序项目地址：    https://github.com/chen359479/orange-uniapp
 
 资源网站预览地址：http://175.24.172.244:8088/#/index
 
