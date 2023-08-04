@@ -85,12 +85,24 @@ router.get('/getMenuList', userTypeFn ,(req,res)=>{
         })
         
         two.forEach(item=>{
-            item.conclude = one.some(i=>JSON.parse(i.children).includes(item.id) && JSON.parse( i.astrict ).includes(type) );
+            item.conclude = one.some(i=>{
+                if( i.children ){
+                    return JSON.parse(i.children).includes(item.id) && JSON.parse( i.astrict ).includes(type);
+                }else{
+                    return false && JSON.parse( i.astrict ).includes(type);
+                }
+            });
             item.type = item.type? true : false;
         })
 
         three.forEach(item=>{
-            item.conclude = two.some(i=>JSON.parse(i.children).includes(item.id) && JSON.parse( i.astrict ).includes(type));
+            item.conclude = two.some(i=>{
+                if( i.children ){
+                    return JSON.parse(i.children).includes(item.id) && JSON.parse( i.astrict ).includes(type);
+                }else{
+                    return false && JSON.parse( i.astrict ).includes(type);
+                }
+            });
             item.type = item.type? true : false;
         })
         

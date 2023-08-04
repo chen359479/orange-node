@@ -1,33 +1,22 @@
 // 第三方中间件
-const fs = require('fs');
-const path = require('path');
 const Core = require('@alicloud/pop-core');
 
 // 公共参数
-const { router , utilSuccess , db , utilErr ,sd  } = require('../../util/util');
+const { router , utilSuccess , db , utilErr , sd , uploadFile } = require('../../util/util');
 
 // 文件上传
 router.post('/uploadFile', (req, res) => {
-    let name = req.file.originalname; // 获取上传上来的文件名
-    let i = name.lastIndexOf("."); // 找到后缀名点的位置
-    let suffix = name.substring(i, name.length); // 截取文件的后缀名
-    let fileName = req.user.name + "(" + new Date().getTime() + ")" + suffix; // 用户名 + 时间 + 后缀名
-
-    let fileSrc = path.join(__dirname, '../files/', fileName);
-    fs.writeFile(fileSrc, req.file.buffer, err => {
-        if (err) {
-            res.send({
-                ...utilErr,
-                msg: "文件上传失败！" + err.message
-            })
-        } else {
-            let ip = "https://www.ktkyio.xyz/files/"; // 服务器对外暴露的静态资源路径，修改这里的files路径记得修改app.js的第19行
-            res.send({
-                ...utilSuccess,
-                msg: "文件上传成功！",
-                src: ip + fileName
-            })
-        }
+    uploadFile(req).then(result=>{
+        res.send({
+            ...utilSuccess,
+            msg: "文件上传成功！",
+            src: result.src
+        })
+    }).catch(err=>{
+        res.send({
+            ...utilErr,
+            msg: "文件上传失败！" + err.message
+        })
     })
 })
 

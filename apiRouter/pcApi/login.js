@@ -18,7 +18,7 @@ router.post('/login', (req, res) => {
         if (sqldata.length) {
             let user = sqldata[0];
             if(user.state == 1){
-                let token = "Bearer " + jwt.sign({ username , type:user.type}, secret, { expiresIn: "10h" });
+                let token = "Bearer " + jwt.sign({ username , type:user.type , id : user.id}, secret, { expiresIn: "10h" });
                 delete user.password;
                 user.token = token;
                 res.send({

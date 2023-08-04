@@ -9,8 +9,11 @@ router.get('/articleNews', (req,res)=>{
     // 查询顶级分类
     getHeader( res ).then( header =>{
         header.forEach(item=>{
-            selectSql += `select id,title,breviary_img,time,size,lang from ${item.name} ORDER BY time DESC limit 0,10;`
+            if( item.type == 1 ){
+                selectSql += `select *  from resource where classID=${item.id} and type=1 ORDER BY time DESC limit 0,10;`
+            }
         });
+
         // 查询最新的10条数据
         db( selectSql , res).then(sqldata=>{
             res.send({
@@ -19,7 +22,7 @@ router.get('/articleNews', (req,res)=>{
                     return {
                         name : header[index].title,
                         data:item,
-                        tableName : header[index].name
+                        classID : header[index].classID
                     }
                 })
             })
@@ -27,31 +30,48 @@ router.get('/articleNews', (req,res)=>{
     })
 })
 
-// 获取数据列表
+// 获取资源数据列表
 router.get('/articleList', (req,res)=>{
-    let { tableName , page , pageSize , title = '' } = req.query,
-    selectSql = `select SQL_CALC_FOUND_ROWS title , id , time , breviary_img , lang , size from ${tableName} where classify like '%${title}%' limit ?,?;SELECT FOUND_ROWS() as total;`
+    let { page , pageSize ,  classID = 1 , type } = req.query;
+    let selectSql = "";
+    if( type != null ){
+        selectSql = `select SQL_CALC_FOUND_ROWS * from resource where classID=? and status=${type} limit ?,?;SELECT FOUND_ROWS() as total;`
+    }else{
+        selectSql = `select SQL_CALC_FOUND_ROWS * from resource where classID=? limit ?,?;SELECT FOUND_ROWS() as total;`
+    }
 
-    db( selectSql , res , [ Number(page)-1 , Number(pageSize)  ]  ).then( sqldata =>{
+    db( selectSql , res , [ classID , Number(page)-1 , Number(pageSize)]  ).then( sqldata =>{
         res.send({
             ...utilSuccess,
-            data:sqldata[0],
+            data:sqldata[0].map(item=>{
+                item.status = item.status?true:false;
+                item.videoType = item.videoType?true:false;
+                return item
+            }),
             total:sqldata[1][0].total,
-            page,
-            pageSize
+            page:Number(page),
+            pageSize:Number(pageSize)
         })
     })
 })
 
 // 获取文本数据列表
 router.get('/articleTextList', (req,res)=>{
-    let { tableName , page , pageSize} = req.query,
-    selectSql = `select SQL_CALC_FOUND_ROWS title , id , time from ${tableName} limit ?,?;SELECT FOUND_ROWS() as total;`
+    let { classID = 1 , page , pageSize , type } = req.query;
+    let selectSql = "";
+    if( type != null ){
+        selectSql = `select SQL_CALC_FOUND_ROWS * from articleText where classID=? and status=${type} limit ?,?;SELECT FOUND_ROWS() as total;`
+    }else{
+        selectSql = `select SQL_CALC_FOUND_ROWS * from articleText where classID=? limit ?,?;SELECT FOUND_ROWS() as total;`
+    }
 
-    db( selectSql , res , [ Number(page)-1 , Number(pageSize)  ]  ).then( sqldata =>{
+    db( selectSql , res , [ classID , Number(page)-1 , Number(pageSize)  ]  ).then( sqldata =>{
         res.send({
             ...utilSuccess,
-            data:sqldata[0],
+            data:sqldata[0].map(item=>{
+                item.status = item.status?true:false;
+                return item
+            }),
             total:sqldata[1][0].total,
             page,
             pageSize
@@ -61,7 +81,7 @@ router.get('/articleTextList', (req,res)=>{
 
 // 获取文本数据列表
 router.get('/articleSearch', (req,res)=>{
-    let { title , page , pageSize } = req.query,
+    let { title = '' , page , pageSize } = req.query,
     selectSql1 = `select SQL_CALC_FOUND_ROWS * from (`,
     selectSql2 = `) as fnd where title like '%${title}%' or lang like "%${title}%" limit ?,?;SELECT FOUND_ROWS() as total;`
     selectSql = ""

@@ -19,7 +19,6 @@ router.get('/getWxuserList',(req,res)=>{
     let { page , pageSize , username = "" , phone = ""} = req.query,
     selectSql = `select SQL_CALC_FOUND_ROWS * from wxuser where username like "%${username}%" and phone like "%${phone}%" limit ?,?;SELECT FOUND_ROWS() as total;`;
     db( selectSql , res , [ Number(page)-1 , Number(pageSize) ]  ).then( sqldata =>{
-        console.log(sqldata)
         res.send({
             ...utilSuccess,
             msg: "获取微信用户成功",

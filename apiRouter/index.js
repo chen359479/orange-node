@@ -1,24 +1,30 @@
 module.exports = {
     activate : (app)=>{
         // pc端
-        app.use('/unapi', require('./pcApi/login'));
+        app.use('/unApi', require('./pcApi/login'));
         app.use('/api',   require('./pcApi/user'));
         app.use('/api',   require('./pcApi/broadcast'));
         app.use('/api',   require('./pcApi/menus'));
         app.use('/api',   require('./pcApi/system'));
         app.use('/api',   require('./pcApi/wxuser'));
+        app.use('/api',   require('./document'));
+        app.use('/api',   require('./car'));
+        app.use('/api',   require('./car/info'));
 
         // 功能性接口
-        app.use('/api',   require('./functionApi/functionApi'));
+        app.use('/unApi',   require('./functionApi/functionApi'));
 
         // 小程序端
         app.use('/unwx',   require('./wxApi/wxlogin'));
-        app.use('/wxapi',   require('./wxApi/wxuser'));
+        app.use('/wxApi',   require('./wxApi/wxuser'));
 
 
         // 文章-通用
-        app.use('/unapi',   require('./article/list'));
-        app.use('/unapi',   require('./article/class'));
+        app.use('/unApi',   require('./article/list'));
+        app.use('/unApi',   require('./article/class'));
         app.use('/api',   require('./article/content'));
+
+        // 订单
+        app.use('/api',   require('./order/order'));
     }
 }

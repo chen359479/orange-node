@@ -4,7 +4,7 @@ const { router , utilSuccess , utilErr , db , sd } = require('../../util/util');
 // 验证用户名是否被占用
 let nameFc = (req, res, next) => {
     let { username , id } = req.body;
-    let nameSql = 'select * from user where username=?';
+    let nameSql = 'select * from user where username=?'; 
     // 查询账号是否被注册
     db(nameSql , res , username ).then(sqldata=>{
         if (sqldata.length) {
@@ -113,9 +113,8 @@ router.post('/register', [phoneFc, nameFc], (req, res) => {
 router.post('/deleteUser',(req, res) =>{
     let { id } = req.body;
     let deleteUser = 'delete from user where id in (?)'
-    let update_time = sd.format(new Date(), 'YYYY/MM/DD HH:mm:ss') ;
-    db( deleteUser , res , [ update_time, id ]).then(sqldata=>{
-        if(sqldata.changedRows >= 1){
+    db( deleteUser , res , [ id ]).then(sqldata=>{
+        if(sqldata.affectedRows >= 1){
             res.send({
                 ...utilSuccess,
                 msg: "操作成功！"
@@ -193,7 +192,7 @@ router.post('/updateMePassword', (req, res) =>{
 
 // 查询用户列表
 router.get('/userList', userTypeFn ,(req, res) =>{
-    let { page , pageSize , username , phone , state } = req.query,
+    let { page , pageSize , username ='' , phone = '' , state = 1 } = req.query,
     { type } = req.user;
     let selectSql = `select SQL_CALC_FOUND_ROWS * from user where type ${type =='admin'?'="user"': '!="superAdmin"'} and username like "%${username}%" and phone like "%${phone}%" ${state==0?'':' and state='+state} limit ?,?;SELECT FOUND_ROWS() as total;`;
     db( selectSql , res ,[ Number(page)-1 , Number(pageSize) ]).then(sqldata=>{

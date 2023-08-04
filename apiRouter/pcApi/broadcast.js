@@ -1,6 +1,20 @@
 // 公共参数
 const { router , utilSuccess , utilErr , db , sd } = require('../../util/util');
 
+// 验证token中用户的角色
+let userTypeFn = (req,res,next)=>{
+    let { type } = req.user;
+    if( type == 'superAdmin' || type == 'admin' ){
+        next()
+    }else{
+        res.send({
+            ...utilErr,
+            msg: "没有权限！",
+        })
+    }
+}
+
+
 // 查询广播列表
 router.get('/broadcastList' ,(req, res) =>{
     let { page , pageSize , grade , title , username } = req.query;
@@ -25,7 +39,7 @@ router.get('/broadcastList' ,(req, res) =>{
 
 
 // 写入广播
-router.post('/writeBroadcast',  (req, res) =>{
+router.post('/writeBroadcast', userTypeFn , (req, res) =>{
     let { title, content, grade, expiration_time } = req.body,
     { username } = req.user,
     created_time = sd.format(new Date(), 'YYYY/MM/DD HH:mm:ss');
@@ -42,12 +56,12 @@ router.post('/writeBroadcast',  (req, res) =>{
 })
 
 // 删除广播  删除广播只会把广播消息的状态改成2,并不会真正在数据库删除此条广播
-router.post('/deleteBroadcast',(req, res) =>{
-    let { id } = req.body,
+router.post('/deleteBroadcast', userTypeFn , (req, res) =>{
+    let { id } = req.body, 
     updateSql = 'update broadcast set state=2 where id=?';
     
-    db( updateSql , res ,[ id ]).then(sqldata=>{
-        if (sqldata.changedRows >= 1){
+    db( updateSql , res , id ).then(sqldata=>{
+        if (sqldata.affectedRows >= 1){
             res.send({
                 ...utilSuccess,
                 msg: "删除广播成功"
@@ -62,7 +76,7 @@ router.post('/deleteBroadcast',(req, res) =>{
 })
 
 // 获取广播内容
-router.get('/getBroadcastInfo' ,(req, res) =>{
+router.get('/getBroadcastInfo', (req, res) =>{
     let { id } = req.query,
     updateSql = 'select content from broadcast where id=? and state=1';
     db( updateSql , res ,[ id ]).then(sqldata=>{

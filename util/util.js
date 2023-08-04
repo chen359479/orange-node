@@ -3,19 +3,22 @@ const mysql = require('mysql');
 const express = require("express");
 const app = express();
 const router = express.Router();
-const axios = require('axios')
+const { axios } = require("./request")
 const sd = require('silly-datetime');
+const path = require('path');
+const fs = require('fs');
 
-let dbinfo = {
+let ip = "http://127.0.0.1:8199",
+// 数据库信息
+dbinfo = {
     host: '127.0.0.1', //数据库的ip地址
     user: 'root',      //登录数据库的账号
     password: '123456',//数据库的密码
     database: 'orange', //数据库的名称
     multipleStatements: true, // 支持执行多条 sql 语句
-}
-
+},
 // 调用db方法必须传入三个参数 sql语句 ，res ，参数
-let db = function (sql, res, params = []) {
+db = function (sql, res, params = []) {
     return new Promise((resolve, reject) => {
         // 一、新建一个连接池
         let pool = mysql.createPool(dbinfo)
@@ -37,60 +40,45 @@ let db = function (sql, res, params = []) {
             })
         })
     })
-}
-
+},
 // 获取
-let getHeader = async (res) => {
-    let selectHeader = " select name , title , id from header where type = 1",
+getHeader = async (res) => {
+    let selectHeader = " select * from header",
         headerArr = [];
     await db(selectHeader, res).then(header => {
         headerArr = header
     })
     return headerArr
+},
+// 上传文件
+uploadFile = ( req )=>{
+    return new Promise((resolve, reject) => {
+        let name = req.file.originalname, // 获取上传上来的文件名
+        i = name.lastIndexOf("."), // 找到后缀名点的位置
+        suffix = name.substring(i, name.length), // 截取文件的后缀名
+        fileName = name.substring( 0, i ),
+        newFileName = fileName + "(" +sd.format(new Date(), 'YYYY-MM-DD HH-mm-ss') + ")" + suffix; //  上传的文件名+ 时间 + 后缀名
+        
+        let fileSrc = path.join(__dirname, '../files/', newFileName);
+        fs.writeFile(fileSrc, req.file.buffer, err => {
+            if (err) {
+                reject(err.message)
+            } else {
+                resolve({
+                    src: ip + "/files/" + newFileName ,
+                    suffix,
+                    newFileName
+                })
+            }
+        })
+    })
 }
-
-// 处理axios
-axios.defaults.timeout = 2000000;      //响应时间
-axios.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded";  //配置请求头
-
-//POST传参序列化(添加请求拦截器)
-axios.interceptors.request.use((config) => {
-    //在发送请求之前做某件事
-    // config.headers.Accept="appliaction/json,text/plan";
-    if (config.method === "post") {
-        config.data = qs.stringify(config.data);
-    }
-    return config;
-}, (error) => {
-    console.log("错误的传参")
-    return Promise.reject(error);
-});
-axios.interceptors.response.use((res) => {
-    //对响应数据做些事
-    if (!res.data) {
-        return Promise.resolve(res);
-    }
-    return res;
-}, (error) => {
-    return Promise.reject(error);
-});
-
-//返回状态判断(添加响应拦截器)
-axios.interceptors.response.use((res) => {
-    //对响应数据做些事
-    if (!res.status == 200) {
-        return Promise.resolve(res);
-    }
-    return res.data;
-}, (error) => {
-    console.log("网络异常")
-    return Promise.reject(error);
-});
 
 
 module.exports = {
     secret: "qwert!@#$5,.!",  // token秘钥
     db,
+    uploadFile,
     utilSuccess: {
         code: 200,
         status: true,
@@ -107,6 +95,7 @@ module.exports = {
     axios,
     sd,
     getHeader,
+    ip,
     appId: "xxxxxx",   // 小程序appid
     appSecret: "xxxxxx",  // 小程序秘钥
 }

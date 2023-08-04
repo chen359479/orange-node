@@ -20,7 +20,7 @@ app.use('/files',express.static(path.join(__dirname,'files')));
 app.use(upload.single('file'));
 
 // 解析token, 并将其挂载到req的user上       指定不需要解析和验证token的路由，可写多个自定义验证规则（在此仅匹配以unapi开头）
-app.use(expressJWT({ secret: secret ,algorithms:['HS256']}).unless({path:[/^\/unapi\//,/^\/unwx\//]}))
+app.use(expressJWT({ secret: secret ,algorithms:['HS256']}).unless({path:[/^\/unApi\//,/^\/unwx\//]}))
 
 // 配置解析前端传来的参数
 app.use(express.json());
@@ -47,4 +47,4 @@ app.use((err,req,res,next)=>{
     }
 })
 
-app.listen(8099)
+app.listen(8199)
